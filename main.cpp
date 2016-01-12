@@ -57,6 +57,15 @@ int main() {
 
     for (int k=0; k<8; k++) {
         string test = infoFile[k];
+        cout << "informazioni file di misura: " << infoFile[k] << endl;
+        // infoFile[0] = Diamond name
+        // infoFile[1] = Measurement type (stability, IV)
+        // infoFile[2] = Diamond tension
+        // infoFile[3] = min tension
+        // infoFile[4] = max tension
+        // infoFile[5] = single acquisition time
+        // infoFile[6] = time
+        // infoFile[7] = source distance
     }
 
     char fileOutputPath[100];
