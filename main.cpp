@@ -2,10 +2,10 @@
 #include <iostream>
 #include <stdlib.h>
 #include <windows.h>
+#include <fstream>
 
-static const char *const POWER_SUPPLY_PATH = "cscript \"C:\\Users\\Chiara La Licata\\Desktop\\diamondMeasurementProgram\\PowerSupplyTEST.vbs\"";
-static const char *const DATA_ACQUISITION_PATH = "cscript \"C:\\Users\\Chiara La Licata\\Desktop\\diamondMeasurementProgram\\dataAcquisitionTEST.vbs\"";
-
+static const char *const POWER_SUPPLY_PATH = "cscript \"Driver\\PowerSupplyTEST.vbs\"";
+static const char *const DATA_ACQUISITION_PATH = "cscript \"Driver\\dataAcquisitionTEST.vbs\"";
 
 void setEnvVar(const char *envVar, const char *value);
 
@@ -34,34 +34,63 @@ void convertIntToString(int value, char *dest) {
 
 int main() {
 
+    string ch;
+    string infoFile[8];
+    std::size_t found = std::string::npos;
+    int i=0;
+    ifstream in;
+    if (!in) {
+        cout << "file not found";
+        return -1;
+    }
+    in.open("C:\\Users\\Chiara La Licata\\Desktop\\fileInformazioniMisure.txt");
+    while(!in.eof()) {
+        in >> ch;
+        if (found!=std::string::npos){
+            infoFile[i]=ch;
+            i++;
+            found = std::string::npos;
+        }
+        found = ch.find(":");
+    }
+    in.close();
+
+    for (int k=0; k<8; k++) {
+        string test = infoFile[k];
+    }
+
     char fileOutputPath[100];
-    const char *nameDiamond;
 
-    nameDiamond = "DM";
+    const char * nameDiamond;
+    nameDiamond=infoFile[0].c_str();
 
-    setEnvVar("voltageValue", "15");
+    const char * voltage = infoFile[2].c_str();
+    setEnvVar("voltageValue", voltage);
+
     setEnvVar("chOnValue", "1");
     setEnvVar("chButton", "1");
 
     system(POWER_SUPPLY_PATH);
 
-    int time = 100; // tempo acquisizione in secondi
+    int time = atoi(infoFile[6].c_str());
     time = time * 1000; // tempo in ms
     int cycles = time / 2000;
 
-    int singleTime; // tempo della singola acquisizione in ms. Ogni punto è un valore medio su questo tempo
-    singleTime = 1000;
-
+    const char * singleTime; // tempo della singola acquisizione in ms. Ogni punto ï¿½ un valore medio su questo tempo
+    singleTime = infoFile[5].c_str();
 
     strcpy(fileOutputPath, "C:\\Users\\Chiara La Licata\\Desktop\\");
     strcat(fileOutputPath, nameDiamond);
+    strcat(fileOutputPath, "_");
+    strcat(fileOutputPath, voltage);
+    strcat(fileOutputPath, "V");
     strcat(fileOutputPath, ".txt");
+
+    cout << "fileOutputPath = " << fileOutputPath << endl;
 
     setEnvVar("filePath", fileOutputPath);
 
-    char sTime[100];
-    convertIntToString(singleTime, sTime);
-    setEnvVar("singleAcquisitionTime", sTime);
+    setEnvVar("singleAcquisitionTime", singleTime);
 
     char nCycles[100];
     convertIntToString(cycles, nCycles);
@@ -71,5 +100,3 @@ int main() {
 
     return 0;
 }
-
-
