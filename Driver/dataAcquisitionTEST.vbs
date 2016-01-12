@@ -1,6 +1,6 @@
 Set wshShell = CreateObject( "WScript.Shell" )
 Set lvapp = CreateObject("LabVIEW.Application")
-Set viAcquisition = lvapp.GetVIReference("C:\Users\Chiara La Licata\Desktop\diamondMeasurementProgram\AH501B TCP-IP Control\AH501B TCP-IP Control.vi") 'Load the VI in memory
+Set viAcquisition = lvapp.GetVIReference("LabView\AH501B TCP-IP Control\AH501B TCP-IP Control.vi") 'Load the VI in memory
 
 Wscript.Echo "dentro il vbscript"
 

@@ -1,6 +1,6 @@
 Set wshShell = CreateObject( "WScript.Shell" )
 Set lvapp = CreateObject("LabVIEW.Application")
-Set vi = lvapp.GetVIReference("C:\Users\Chiara La Licata\Desktop\diamondMeasurementProgram\Test2.vi") 'Load the VI in memory
+Set vi = lvapp.GetVIReference("LabView\Test2.vi") 'Load the VI in memory
 
 Wscript.Echo "dentro il vbscript"
 
