@@ -1,0 +1,8 @@
+Nome Diamante: DM1
+Tipo di misura (stability, IV): stability
+Tensione diamante (se stability): 3
+Tensione minima (se IV): 2
+Tensione massima (se IV): 3
+Tempo di acquisizione singola misura(in ms): 4
+Tempo di acquisizione per tutte le misure(in secondi): 5
+Distanza sorgente: 6

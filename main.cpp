@@ -43,7 +43,7 @@ int main() {
         cout << "file not found";
         return -1;
     }
-    in.open("C:\\Users\\Chiara La Licata\\Desktop\\fileInformazioniMisure.txt");
+    in.open("fileInformazioniMisure.txt");
     while(!in.eof()) {
         in >> ch;
         if (found!=std::string::npos){
