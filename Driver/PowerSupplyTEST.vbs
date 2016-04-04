@@ -32,11 +32,7 @@ chOnValue = CInt(wshShell.ExpandEnvironmentStrings("%chOnValue%"))
 switchPanel(0) = chOnValue
 paramVals(1) = switchPanel 'Passo il cluster nelle nelleParamVals
 
-' click sul bottone del front panel
-'chButton = CBool(1)
-'chButton = CBool(wshShell.ExpandEnvironmentStrings("%chButton%"))
-'paramVals(2) = chButton
-
+' equivalente del click sul bottone del front panel
 paramVals(2) = CDbl(wshShell.ExpandEnvironmentStrings("%chButton%"))
 
 ' lancio labview passandogli i parametri con i valori fissati
