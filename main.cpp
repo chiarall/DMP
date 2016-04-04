@@ -8,6 +8,7 @@
 
 static const char *const POWER_SUPPLY_PATH = "cscript \"Driver\\PowerSupplyTEST.vbs\"";
 static const char *const DATA_ACQUISITION_PATH = "cscript \"Driver\\dataAcquisitionTEST.vbs\"";
+static const char *const ARDUINO_MOTOR_SHIELD = "cscript \"Driver\\motorController.vbs\"";
 
 static const char *const BASE_PATH = "C:\\Users\\Belle2\\Desktop\\DMP_test\\";
 
@@ -15,8 +16,10 @@ void setEnvVar(const char *envVar, const char *value);
 
 void powerSupply(const char *voltage, const char *onOffValue, const char *channel);
 
-void dataAcquisiton(const char *nameDiamond, const char *voltage, const char *singleTime,
-                    const char *totalAcquisitionTime);
+void dataAcquisition(const char *nameDiamond, const char *voltage, const char *singleTime,
+                     const char *totalAcquisitionTime);
+
+void motorController(const char *speed, const char *numberOfStep);
 
 using namespace std;
 
@@ -77,6 +80,11 @@ int main() {
         // infoFile[7] = source distance
     }
 
+    // ************* Motor Parameter Control *******
+    const char *speed = "1600";
+    const char *numberOfStep = "1600";
+    motorController(speed, numberOfStep);
+
     // ************* POWER SUPPLY ON*********
     const char *nameDiamond = infoFile[0].c_str();
     const char *voltage = infoFile[2].c_str();
@@ -88,7 +96,7 @@ int main() {
     // tempo della singola acquisizione in ms. Ogni punto � un valore medio su questo tempo
     const char *singleTime = infoFile[5].c_str();
     const char *totalAcquisitionTime = infoFile[6].c_str();
-    dataAcquisiton(nameDiamond, voltage, singleTime, totalAcquisitionTime);
+    dataAcquisition(nameDiamond, voltage, singleTime, totalAcquisitionTime);
 
     // ************* POWER SUPPLY OFF*********
     const char *offValue = "0";
@@ -101,8 +109,8 @@ int main() {
     return 0;
 }
 
-void dataAcquisiton(const char *nameDiamond, const char *voltage, const char *singleTime,
-                    const char *totalAcquisitionTime) {
+void dataAcquisition(const char *nameDiamond, const char *voltage, const char *singleTime,
+                     const char *totalAcquisitionTime) {
     int time = atoi(totalAcquisitionTime);
     time = time * 1000; // tempo in ms
     int cycles = time / atoi(singleTime);
@@ -136,5 +144,11 @@ void powerSupply(const char *voltage, const char *onOffValue, const char *channe
     setEnvVar("chOnValue", onOffValue);
     setEnvVar("chButton", channel); // 2 corrisponde al canale 0, 3 corrisponde a CH1. 4 a CH2, 5 a CH3
     system(POWER_SUPPLY_PATH); // Avvio PowerSupply
+
 }
 
+void motorController(const char *speed, const char *numberOfStep) {
+    setEnvVar("motorSpeed", speed);
+    setEnvVar("numberOfStep", numberOfStep);
+    system(ARDUINO_MOTOR_SHIELD); // Avvio PowerSupply
+}
