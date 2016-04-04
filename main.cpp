@@ -3,11 +3,16 @@
 #include <stdlib.h>
 #include <windows.h>
 #include <fstream>
+#include <thread>
+
 
 static const char *const POWER_SUPPLY_PATH = "cscript \"Driver\\PowerSupplyTEST.vbs\"";
 static const char *const DATA_ACQUISITION_PATH = "cscript \"Driver\\dataAcquisitionTEST.vbs\"";
 
 void setEnvVar(const char *envVar, const char *value);
+
+DWORD WINAPI startDataAcquisition(LPVOID lpParam);
+DWORD WINAPI startPowerSupply(LPVOID lpParam);
 
 using namespace std;
 
@@ -34,20 +39,24 @@ void convertIntToString(int value, char *dest) {
 
 int main() {
 
+    HANDLE handleOfPowerSupplyThread = 0;
+    HANDLE handleOfDataAcquisitionThread = 0;
+    HANDLE arrayOfThread[2];
+
     string ch;
     string infoFile[8];
     std::size_t found = std::string::npos;
-    int i=0;
+    int i = 0;
     ifstream in;
     if (!in) {
         cout << "file not found";
         return -1;
     }
     in.open("fileInformazioniMisure.txt");
-    while(!in.eof()) {
+    while (!in.eof()) {
         in >> ch;
-        if (found!=std::string::npos){
-            infoFile[i]=ch;
+        if (found != std::string::npos) {
+            infoFile[i] = ch;
             i++;
             found = std::string::npos;
         }
@@ -55,7 +64,7 @@ int main() {
     }
     in.close();
 
-    for (int k=0; k<8; k++) {
+    for (int k = 0; k < 8; k++) {
         string test = infoFile[k];
         cout << "informazioni file di misura: " << infoFile[k] << endl;
         // infoFile[0] = Diamond name
@@ -70,25 +79,31 @@ int main() {
 
     char fileOutputPath[100];
 
-    const char * nameDiamond;
-    nameDiamond=infoFile[0].c_str();
+    const char *nameDiamond;
+    nameDiamond = infoFile[0].c_str();
 
-    const char * voltage = infoFile[2].c_str();
+    const char *voltage = infoFile[2].c_str();
     setEnvVar("voltageValue", voltage);
 
     setEnvVar("chOnValue", "1");
-    setEnvVar("chButton", "1");
+    setEnvVar("chButton", "2"); // 2 corrisponde al canale 0, 3 corrisponde a CH1. 4 a CH2, 5 a CH3
 
-    system(POWER_SUPPLY_PATH);
+    handleOfPowerSupplyThread = CreateThread(NULL, 0, startPowerSupply, NULL, 0, NULL);
+    if (handleOfPowerSupplyThread == NULL) {
+        ExitProcess(0);
+    }
+
+ /*   Sleep(30000);
+
+    const char *singleTime; // tempo della singola acquisizione in ms. Ogni punto � un valore medio su questo tempo
+    singleTime = infoFile[5].c_str();
 
     int time = atoi(infoFile[6].c_str());
     time = time * 1000; // tempo in ms
-    int cycles = time / 2000;
-
-    const char * singleTime; // tempo della singola acquisizione in ms. Ogni punto � un valore medio su questo tempo
-    singleTime = infoFile[5].c_str();
-
-    strcpy(fileOutputPath, "C:\\Users\\Chiara La Licata\\Desktop\\");
+    int cycles = time / atoi(singleTime);
+    cout << "Numero di cicli " << cycles << endl;
+    strcpy(fileOutputPath, "C:\\Users\\Belle2\\Desktop\\DMP_test\\");
+//    strcpy(fileOutputPath, "");
     strcat(fileOutputPath, nameDiamond);
     strcat(fileOutputPath, "_");
     strcat(fileOutputPath, voltage);
@@ -105,7 +120,28 @@ int main() {
     convertIntToString(cycles, nCycles);
     setEnvVar("numberOfCycles", nCycles);
 
-    system(DATA_ACQUISITION_PATH);
+    handleOfDataAcquisitionThread = CreateThread(NULL, 0, startDataAcquisition, NULL, 0, NULL);
+    if (handleOfDataAcquisitionThread == NULL) {
+        ExitProcess(0);
+    }
 
+    arrayOfThread[0] = handleOfPowerSupplyThread;
+    arrayOfThread[1] = handleOfDataAcquisitionThread;
+
+    WaitForMultipleObjects(2, arrayOfThread, TRUE, INFINITE );
+*/
+    cout << "Digita q e premi invio per terminare." << endl;
+    int stringaAttesa;
+    cin >> stringaAttesa;
+    return 0;
+}
+
+DWORD WINAPI startDataAcquisition(LPVOID lpParam) {
+    system(DATA_ACQUISITION_PATH); // Avvio acquisizione
+    return 0;
+}
+
+DWORD WINAPI startPowerSupply(LPVOID lpParam) {
+    system(POWER_SUPPLY_PATH); // Avvio PowerSupply
     return 0;
 }

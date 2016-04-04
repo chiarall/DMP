@@ -1,8 +1,11 @@
-Nome Diamante: DM1
+Nome Diamante: DMtest
 Tipo di misura (stability, IV): stability
-Tensione diamante (se stability): 3
+Tensione diamante (se stability): 20
 Tensione minima (se IV): 2
 Tensione massima (se IV): 3
-Tempo di acquisizione singola misura(in ms): 4
-Tempo di acquisizione per tutte le misure(in secondi): 5
+Tempo di acquisizione singola misura(in ms): 1000
+Tempo di acquisizione per tutte le misure(in secondi): 30
 Distanza sorgente: 6
+
+
+

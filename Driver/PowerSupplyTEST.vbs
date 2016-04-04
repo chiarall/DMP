@@ -2,7 +2,7 @@ Set wshShell = CreateObject( "WScript.Shell" )
 Dim sCurPath
 sCurPath = wshShell.CurrentDirectory
 Set lvapp = CreateObject("LabVIEW.Application")
-Set vi = lvapp.GetVIReference(sCurPath & "\LabView\Test2.vi") 'Load the VI in memory
+Set vi = lvapp.GetVIReference(sCurPath & "\LabView\TEST_DT5521\Test_DT5521.vi") 'Load the VI in memory
 
 Wscript.Echo "dentro il vbscript"
 
@@ -13,15 +13,12 @@ Dim channelPanel, chArray, voltageValue
 Dim switchPanel, chOnValue
 Dim chButton
 
-paramNames(0) = "CHANNEL"
+paramNames(0) = "CHANNEL SETTING"
 paramNames(1) = "SWITCH"
-paramNames(2) = "CH0 PROG"
-'paramNames(3) = "CH1 PROG"
-'paramNames(4) = "CH2 PROG"
-'paramNames(5) = "CH3 PROG"
+paramNames(2) = "channelSelector"
 
 'fisso il valore della tensione
-channelPanel = vi.GetControlValue("CHANNEL") 'Prendo dal VI il cluster CHANNEL
+channelPanel = vi.GetControlValue("CHANNEL SETTING") 'Prendo dal VI il cluster CHANNEL
 voltageValue = CDbl(wshShell.ExpandEnvironmentStrings("%voltageValue%"))  'creo un double di valore pari a quello della variabile di ambiente voltage
 chArray= channelPanel(0) 'Prendo il Channel 1 dal Cluster
 chArray(0) = voltageValue 'Assegno il valore 1 alla prima variabile (Voltage) del channel 1
@@ -37,8 +34,10 @@ paramVals(1) = switchPanel 'Passo il cluster nelle nelleParamVals
 
 ' click sul bottone del front panel
 'chButton = CBool(1)
-chButton = CBool(wshShell.ExpandEnvironmentStrings("%chButton%"))
-paramVals(2) = chButton
+'chButton = CBool(wshShell.ExpandEnvironmentStrings("%chButton%"))
+'paramVals(2) = chButton
+
+paramVals(2) = CDbl(wshShell.ExpandEnvironmentStrings("%chButton%"))
 
 ' lancio labview passandogli i parametri con i valori fissati
 vi.Call paramNames,paramVals 'run the VI
