@@ -12,9 +12,11 @@ static const char *const ARDUINO_MOTOR_SHIELD = "cscript \"Driver\\motorControll
 
 static const char *const BASE_PATH = "C:\\Users\\Belle2\\Desktop\\DMP_test\\";
 
+DWORD WINAPI powerSupplyThread(LPVOID lpParam);
+
 void setEnvVar(const char *envVar, const char *value);
 
-void powerSupply(const char *voltage, const char *onOffValue, const char *channel);
+// void powerSupply(const char *voltage, const char *onOffValue, const char *channel);
 
 void dataAcquisition(const char *nameDiamond, const char *voltage, const char *singleTime,
                      const char *totalAcquisitionTime);
@@ -45,6 +47,9 @@ void convertIntToString(int value, char *dest) {
 }
 
 int main() {
+
+    HANDLE powerSupplyThreadHandle = 0;
+    HANDLE arrayOfThread[1];
 
     string ch;
     string infoFile[8];
@@ -85,22 +90,35 @@ int main() {
     const char *numberOfStep = "1600";
     motorController(speed, numberOfStep);
 
-    // ************* POWER SUPPLY ON*********
-    const char *nameDiamond = infoFile[0].c_str();
+    // ************* POWER SUPPLY *********
     const char *voltage = infoFile[2].c_str();
     const char *onValue = "1";
     const char *channelZero = "2";
-    powerSupply(voltage, onValue, channelZero);
+    const char *totalAcquisitionTime = infoFile[6].c_str();
+    int time2 = atoi(totalAcquisitionTime);
+    time2 = time2 * 1000 + 60000; // tempo in ms
+    char totalPowerTime[100];
+    convertIntToString(time2, totalPowerTime);
 
+    setEnvVar("voltageValue", voltage);
+    setEnvVar("chOnValue", onValue);
+    setEnvVar("chButton", channelZero); // 2 corrisponde al canale 0, 3 corrisponde a CH1. 4 a CH2, 5 a CH3
+    setEnvVar("timePowerSupplyOn", totalPowerTime); // 2 corrisponde al canale 0, 3 corrisponde a CH1. 4 a CH2, 5 a CH3
+    powerSupplyThreadHandle = CreateThread(NULL, 0, powerSupplyThread, NULL, 0, NULL);
+    if (powerSupplyThreadHandle == NULL) {
+        ExitProcess(0);
+    }
+
+/*
     // ************* DATA ACQUISITION ********
     // tempo della singola acquisizione in ms. Ogni punto � un valore medio su questo tempo
+    const char *nameDiamond = infoFile[0].c_str();
     const char *singleTime = infoFile[5].c_str();
-    const char *totalAcquisitionTime = infoFile[6].c_str();
     dataAcquisition(nameDiamond, voltage, singleTime, totalAcquisitionTime);
+*/
 
-    // ************* POWER SUPPLY OFF*********
-    const char *offValue = "0";
-    powerSupply(voltage, offValue, channelZero);
+    arrayOfThread[0] = powerSupplyThreadHandle;
+    WaitForMultipleObjects(1, arrayOfThread, TRUE, INFINITE); // Attendo che il thread di powerSupply termini
 
 
     cout << "Digita q e premi invio per terminare." << endl;
@@ -139,16 +157,21 @@ void dataAcquisition(const char *nameDiamond, const char *voltage, const char *s
 
 }
 
-void powerSupply(const char *voltage, const char *onOffValue, const char *channel) {
-    setEnvVar("voltageValue", voltage);
-    setEnvVar("chOnValue", onOffValue);
-    setEnvVar("chButton", channel); // 2 corrisponde al canale 0, 3 corrisponde a CH1. 4 a CH2, 5 a CH3
-    system(POWER_SUPPLY_PATH); // Avvio PowerSupply
-
-}
+//void powerSupply(const char *voltage, const char *onOffValue, const char *channel) {
+//    setEnvVar("voltageValue", voltage);
+//    setEnvVar("chOnValue", onOffValue);
+//    setEnvVar("chButton", channel); // 2 corrisponde al canale 0, 3 corrisponde a CH1. 4 a CH2, 5 a CH3
+//    system(POWER_SUPPLY_PATH); // Avvio PowerSupply
+//}
 
 void motorController(const char *speed, const char *numberOfStep) {
     setEnvVar("motorSpeed", speed);
     setEnvVar("numberOfStep", numberOfStep);
     system(ARDUINO_MOTOR_SHIELD); // Avvio PowerSupply
+}
+
+
+DWORD WINAPI powerSupplyThread(LPVOID lpParam) {
+    system(POWER_SUPPLY_PATH); // Avvio PowerSupply
+    return 0;
 }
