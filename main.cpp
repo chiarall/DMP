@@ -23,6 +23,8 @@ void dataAcquisition(const char *nameDiamond, const char *voltage, const char *s
 
 void motorController(const char *speed, const char *numberOfStep);
 
+void createVoltageFile(const char *path, const char *voltage, int channelStatus);
+
 using namespace std;
 
 const wchar_t *GetWC(const char *c) {
@@ -55,6 +57,8 @@ int main() {
     string infoFile[8];
     std::size_t found = std::string::npos;
     int i = 0;
+
+
     ifstream in;
     if (!in) {
         cout << "file not found";
@@ -84,47 +88,65 @@ int main() {
         // infoFile[6] = time
         // infoFile[7] = source distance
     }
-
+/*
     // ************* Motor Parameter Control *******
     const char *speed = "1600";
     const char *numberOfStep = "1600";
     motorController(speed, numberOfStep);
 
+*/
     // ************* POWER SUPPLY *********
     const char *voltage = infoFile[2].c_str();
-    const char *onValue = "1";
-    const char *channelZero = "2";
+
+    const char *pathCHzero = "CH0.txt";
+    const char *pathCHone = "C:\\Users\\Belle2\\LABVIEW WORK\\TEST_DT5521\\CH1.txt";
+    const char *pathCHtwo = "C:\\Users\\Belle2\\LABVIEW WORK\\TEST_DT5521\\CH2.txt";
+    const char *pathCHthree = "C:\\Users\\Belle2\\LABVIEW WORK\\TEST_DT5521\\CH3.txt";
+    const char *pathCNTRL = "C:\\Users\\Belle2\\LABVIEW WORK\\TEST_DT5521\\CNTRL_ch.txt";
     const char *totalAcquisitionTime = infoFile[6].c_str();
-    int time2 = atoi(totalAcquisitionTime);
-    time2 = time2 * 1000 + 60000; // tempo in ms
-    char totalPowerTime[100];
-    convertIntToString(time2, totalPowerTime);
+
+    createVoltageFile(pathCHzero, voltage, 1);
 
     setEnvVar("voltageValue", voltage);
-    setEnvVar("chOnValue", onValue);
-    setEnvVar("chButton", channelZero); // 2 corrisponde al canale 0, 3 corrisponde a CH1. 4 a CH2, 5 a CH3
-    setEnvVar("timePowerSupplyOn", totalPowerTime); // 2 corrisponde al canale 0, 3 corrisponde a CH1. 4 a CH2, 5 a CH3
+    setEnvVar("pathCHzero", pathCHzero);
+    setEnvVar("pathCHone", pathCHone); // 2 corrisponde al canale 0, 3 corrisponde a CH1. 4 a CH2, 5 a CH3
+    setEnvVar("pathCHtwo", pathCHtwo); // 2 corrisponde al canale 0, 3 corrisponde a CH1. 4 a CH2, 5 a CH3
+    setEnvVar("pathCHthree", pathCHthree); // 2 corrisponde al canale 0, 3 corrisponde a CH1. 4 a CH2, 5 a CH3
+    setEnvVar("pathCNTRL", pathCNTRL); // 2 corrisponde al canale 0, 3 corrisponde a CH1. 4 a CH2, 5 a CH3
     powerSupplyThreadHandle = CreateThread(NULL, 0, powerSupplyThread, NULL, 0, NULL);
     if (powerSupplyThreadHandle == NULL) {
         ExitProcess(0);
     }
 
+    Sleep(20000);
 /*
     // ************* DATA ACQUISITION ********
     // tempo della singola acquisizione in ms. Ogni punto � un valore medio su questo tempo
     const char *nameDiamond = infoFile[0].c_str();
     const char *singleTime = infoFile[5].c_str();
     dataAcquisition(nameDiamond, voltage, singleTime, totalAcquisitionTime);
-*/
+
 
     arrayOfThread[0] = powerSupplyThreadHandle;
     WaitForMultipleObjects(1, arrayOfThread, TRUE, INFINITE); // Attendo che il thread di powerSupply termini
 
-
+*/
     cout << "Digita q e premi invio per terminare." << endl;
     int stringaAttesa;
     cin >> stringaAttesa;
     return 0;
+}
+
+void createVoltageFile(const char *path, const char *voltage, int channelStatus) {
+    ofstream file;
+    file.open(path, std::ofstream::out | std::ofstream::trunc);
+    if (!file) {
+        cout << "file not found";
+        return;
+    }
+    file << voltage << "\t20\t50\t50\t500\t" << channelStatus;
+    file.close();
+
 }
 
 void dataAcquisition(const char *nameDiamond, const char *voltage, const char *singleTime,
