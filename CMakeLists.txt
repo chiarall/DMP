@@ -13,5 +13,5 @@ file(COPY LabView DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 
 set(CMAKE_RUNTIME_TEST_OUTPUT_DIRECTORY "C:\\ClionProjects\\Test")
 set(SOURCE_TEST_FILES Test/test.cpp DataParser.cpp DataParser.h)
-add_executable(Test ${SOURCE_TEST_FILES})
+add_executable(TestParser ${SOURCE_TEST_FILES})
 file(COPY doeTable.dat DESTINATION ${CMAKE_RUNTIME_TEST_OUTPUT_DIRECTORY})

@@ -27,6 +27,8 @@ void motorController(const char *speed, const char *numberOfStep);
 
 void createVoltageFile(const char *path, const char *voltage, int channelStatus);
 
+void goToNextVoltage(const char *path, int status);
+
 using namespace std;
 
 const wchar_t *GetWC(const char *c) {
@@ -51,31 +53,16 @@ void convertIntToString(int value, char *dest) {
 }
 
 int main() {
-
+    const char *pathCHzero = "CH0.txt";
+    const char *pathCHone = "CH1.txt";
+    const char *pathCHtwo = "CH2.txt";
+    const char *pathCHthree = "CH3.txt";
+    const char *pathCNTRL = "CNTRL_ch.txt";
     HANDLE powerSupplyThreadHandle = 0;
     HANDLE arrayOfThread[1];
 
     DataParser *parser = new DataParser("doeTable.dat");
     vector<vector<string>> doe = parser->read();
-    string ch;
-    std::size_t found = std::string::npos;
-    int i = 0;
-
-
-
-
-    for (int k = 0; k < 8; k++) {
-        string test = infoFile[k];
-        cout << "informazioni file di misura: " << infoFile[k] << endl;
-        // infoFile[0] = Diamond name
-        // infoFile[1] = Measurement type (stability, IV)
-        // infoFile[2] = Diamond tension
-        // infoFile[3] = min tension
-        // infoFile[4] = max tension
-        // infoFile[5] = single acquisition time
-        // infoFile[6] = time
-        // infoFile[7] = source distance
-    }
 
     // ************* Motor Parameter Control *******
     const char *speed = "1600";
@@ -85,15 +72,12 @@ int main() {
 
     // ************* POWER SUPPLY *********
     const char *voltage = doe[0][2].c_str();
-
-    const char *pathCHzero = "CH0.txt";
-    const char *pathCHone = "C:\\Users\\Belle2\\LABVIEW WORK\\TEST_DT5521\\CH1.txt";
-    const char *pathCHtwo = "C:\\Users\\Belle2\\LABVIEW WORK\\TEST_DT5521\\CH2.txt";
-    const char *pathCHthree = "C:\\Users\\Belle2\\LABVIEW WORK\\TEST_DT5521\\CH3.txt";
-    const char *pathCNTRL = "C:\\Users\\Belle2\\LABVIEW WORK\\TEST_DT5521\\CNTRL_ch.txt";
-    const char *totalAcquisitionTime = infoFile[6].c_str();
+    const char *totalAcquisitionTime = doe[0][4].c_str();
 
     createVoltageFile(pathCHzero, voltage, 1);
+    createVoltageFile(pathCHone, voltage, 0);
+    createVoltageFile(pathCHtwo, voltage, 0);
+    createVoltageFile(pathCHthree, voltage, 0);
 
     setEnvVar("voltageValue", voltage);
     setEnvVar("pathCHzero", pathCHzero);
@@ -109,14 +93,30 @@ int main() {
     Sleep(20000);
 
     // ************* DATA ACQUISITION ********
-    //for
-    // tempo della singola acquisizione in ms. Ogni punto � un valore medio su questo tempo
-    // fare un ciclo for. Ad ogni ciclo i files con le tensioni vanno aggiornati dopo dataAcquisition e, ultimo passo, il file pathCNTRL va rimesso a 1 e termina con lo sleep
-    const char *nameDiamond = infoFile[0].c_str();
-    const char *singleTime = infoFile[5].c_str();
-    dataAcquisition(nameDiamond, voltage, singleTime, totalAcquisitionTime);
+    for (int id = 0; id < doe.size(); id++) {
+        voltage = doe[id][2].c_str();
+        createVoltageFile(pathCHzero, voltage, 1);
+        createVoltageFile(pathCHone, voltage, 0);
+        createVoltageFile(pathCHtwo, voltage, 0);
+        createVoltageFile(pathCHthree, voltage, 0);
 
+        goToNextVoltage(pathCNTRL, 1); //la tensione viene cambiata con il valore successivo
+        Sleep(20000);
+        // tempo della singola acquisizione in ms. Ogni punto � un valore medio su questo tempo
+        // fare un ciclo for. Ad ogni ciclo i files con le tensioni vanno aggiornati dopo dataAcquisition e, ultimo passo, il file pathCNTRL va rimesso a 1 e termina con lo sleep
+        const char *nameDiamond = doe[id][1].c_str();
+        const char *singleTime = doe[id][3].c_str();
+        dataAcquisition(nameDiamond, voltage, singleTime, totalAcquisitionTime);
+    }
 
+    createVoltageFile(pathCHzero, voltage, 0);
+    createVoltageFile(pathCHone, voltage, 0);
+    createVoltageFile(pathCHtwo, voltage, 0);
+    createVoltageFile(pathCHthree, voltage, 0);
+    goToNextVoltage(pathCNTRL, 1); //la tensione viene cambiata con il valore successivo
+    Sleep(20000);
+
+    goToNextVoltage(pathCNTRL, 2);
 
     // mettere un 2 in pathCNTRL per terminare il powerSupply
     arrayOfThread[0] = powerSupplyThreadHandle;
@@ -134,10 +134,23 @@ void createVoltageFile(const char *path, const char *voltage, int channelStatus)
         cout << "file not found";
         return;
     }
-    file << voltage << "\t20\t50\t50\t500\t" << channelStatus;
+    file << voltage << "\t1\t50\t50\t1000\t" << channelStatus;
     file.close();
 
 }
+
+void goToNextVoltage(const char *path, int status) {
+    ofstream file;
+    file.open(path, std::ofstream::out | std::ofstream::trunc);
+    if (!file) {
+        cout << "file not found";
+        return;
+    }
+    file << status;
+    file.close();
+
+}
+
 
 void dataAcquisition(const char *nameDiamond, const char *voltage, const char *singleTime,
                      const char *totalAcquisitionTime) {

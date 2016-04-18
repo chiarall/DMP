@@ -18,9 +18,10 @@ vector<vector<string>> DataParser::read() {
 
     if (!in) {
         cout << "file not found";
-        return NULL;
+        return doe;
     }
-
+    string firstLine;
+    getline(in, firstLine);
     while (!in.eof()) {
         in >> idNumber >> nameDiamond >> voltage >> samplingWindow >> totalAcquisitionTime >> sourceDistance;
         cout << "id = " << idNumber << "  name = " << nameDiamond << "  voltage = " << voltage <<
