@@ -2,7 +2,8 @@ Set wshShell = CreateObject( "WScript.Shell" )
 Dim sCurPath
 sCurPath = wshShell.CurrentDirectory
 Set lvapp = CreateObject("LabVIEW.Application")
-Set vi = lvapp.GetVIReference(sCurPath & "\LabView\PowerSupplyPietro\TEST_DT5521\Test_DT5521.vi") 'Load the VI in memory
+'Set vi = lvapp.GetVIReference(sCurPath & "\LabView\PowerSupplyPietro\TEST_DT5521\Test_DT5521.vi") 'Load the VI in memory
+Set vi = lvapp.GetVIReference(sCurPath & "\LabView\TEST_DT5521_ModPietro_v2\Test_DT5521.vi") 'Load the VI in memory
 
 Wscript.Echo "dentro il vbscript"
 

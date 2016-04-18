@@ -4,6 +4,8 @@
 #include <windows.h>
 #include <fstream>
 #include <thread>
+#include <vector>
+#include "DataParser.h"
 
 
 static const char *const POWER_SUPPLY_PATH = "cscript \"Driver\\PowerSupplyTEST.vbs\"";
@@ -53,28 +55,14 @@ int main() {
     HANDLE powerSupplyThreadHandle = 0;
     HANDLE arrayOfThread[1];
 
+    DataParser *parser = new DataParser("doeTable.dat");
+    vector<vector<string>> doe = parser->read();
     string ch;
-    string infoFile[8];
     std::size_t found = std::string::npos;
     int i = 0;
 
 
-    ifstream in;
-    if (!in) {
-        cout << "file not found";
-        return -1;
-    }
-    in.open("fileInformazioniMisure.txt");
-    while (!in.eof()) {
-        in >> ch;
-        if (found != std::string::npos) {
-            infoFile[i] = ch;
-            i++;
-            found = std::string::npos;
-        }
-        found = ch.find(":");
-    }
-    in.close();
+
 
     for (int k = 0; k < 8; k++) {
         string test = infoFile[k];
@@ -88,15 +76,15 @@ int main() {
         // infoFile[6] = time
         // infoFile[7] = source distance
     }
-/*
+
     // ************* Motor Parameter Control *******
     const char *speed = "1600";
     const char *numberOfStep = "1600";
     motorController(speed, numberOfStep);
 
-*/
+
     // ************* POWER SUPPLY *********
-    const char *voltage = infoFile[2].c_str();
+    const char *voltage = doe[0][2].c_str();
 
     const char *pathCHzero = "CH0.txt";
     const char *pathCHone = "C:\\Users\\Belle2\\LABVIEW WORK\\TEST_DT5521\\CH1.txt";
@@ -119,18 +107,20 @@ int main() {
     }
 
     Sleep(20000);
-/*
+
     // ************* DATA ACQUISITION ********
+    //for
     // tempo della singola acquisizione in ms. Ogni punto � un valore medio su questo tempo
+    // fare un ciclo for. Ad ogni ciclo i files con le tensioni vanno aggiornati dopo dataAcquisition e, ultimo passo, il file pathCNTRL va rimesso a 1 e termina con lo sleep
     const char *nameDiamond = infoFile[0].c_str();
     const char *singleTime = infoFile[5].c_str();
     dataAcquisition(nameDiamond, voltage, singleTime, totalAcquisitionTime);
 
 
+
+    // mettere un 2 in pathCNTRL per terminare il powerSupply
     arrayOfThread[0] = powerSupplyThreadHandle;
     WaitForMultipleObjects(1, arrayOfThread, TRUE, INFINITE); // Attendo che il thread di powerSupply termini
-
-*/
     cout << "Digita q e premi invio per terminare." << endl;
     int stringaAttesa;
     cin >> stringaAttesa;
