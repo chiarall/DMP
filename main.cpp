@@ -6,7 +6,9 @@
 #include <thread>
 #include <vector>
 #include "DataParser.h"
+#include <direct.h>
 
+#define GetCurrentDir _getcwd
 
 static const char *const POWER_SUPPLY_PATH = "cscript \"Driver\\PowerSupplyTEST.vbs\"";
 static const char *const DATA_ACQUISITION_PATH = "cscript \"Driver\\dataAcquisitionTEST.vbs\"";
@@ -28,6 +30,8 @@ void motorController(const char *speed, const char *numberOfStep);
 void createVoltageFile(const char *path, const char *voltage, int channelStatus);
 
 void goToNextVoltage(const char *path, int status);
+
+const char *getFullPath(const char *pathCHzero);
 
 using namespace std;
 
@@ -79,12 +83,18 @@ int main() {
     createVoltageFile(pathCHtwo, voltage, 0);
     createVoltageFile(pathCHthree, voltage, 0);
 
+    char fileOutputPath[FILENAME_MAX];
     setEnvVar("voltageValue", voltage);
-    setEnvVar("pathCHzero", pathCHzero);
-    setEnvVar("pathCHone", pathCHone); // 2 corrisponde al canale 0, 3 corrisponde a CH1. 4 a CH2, 5 a CH3
-    setEnvVar("pathCHtwo", pathCHtwo); // 2 corrisponde al canale 0, 3 corrisponde a CH1. 4 a CH2, 5 a CH3
-    setEnvVar("pathCHthree", pathCHthree); // 2 corrisponde al canale 0, 3 corrisponde a CH1. 4 a CH2, 5 a CH3
-    setEnvVar("pathCNTRL", pathCNTRL); // 2 corrisponde al canale 0, 3 corrisponde a CH1. 4 a CH2, 5 a CH3
+    setEnvVar("pathCHzero", getFullPath(pathCHzero, fileOutputPath));
+    setEnvVar("pathCHone", getFullPath(pathCHone,
+                                       fileOutputPath)); // 2 corrisponde al canale 0, 3 corrisponde a CH1. 4 a CH2, 5 a CH3
+    setEnvVar("pathCHtwo", getFullPath(pathCHtwo,
+                                       fileOutputPath)); // 2 corrisponde al canale 0, 3 corrisponde a CH1. 4 a CH2, 5 a CH3
+    setEnvVar("pathCHthree", getFullPath(pathCHthree,
+                                         fileOutputPath)); // 2 corrisponde al canale 0, 3 corrisponde a CH1. 4 a CH2, 5 a CH3
+    setEnvVar("pathCNTRL", getFullPath(pathCNTRL,
+                                       fileOutputPath)); // 2 corrisponde al canale 0, 3 corrisponde a CH1. 4 a CH2, 5 a CH3
+
     powerSupplyThreadHandle = CreateThread(NULL, 0, powerSupplyThread, NULL, 0, NULL);
     if (powerSupplyThreadHandle == NULL) {
         ExitProcess(0);
@@ -92,22 +102,27 @@ int main() {
 
     Sleep(20000);
 
-    // ************* DATA ACQUISITION ********
+    // ************* DATA ACQUISITION LOOP ********
     for (int id = 0; id < doe.size(); id++) {
-        voltage = doe[id][2].c_str();
-        createVoltageFile(pathCHzero, voltage, 1);
-        createVoltageFile(pathCHone, voltage, 0);
-        createVoltageFile(pathCHtwo, voltage, 0);
-        createVoltageFile(pathCHthree, voltage, 0);
+        if (id > 0) {
+            voltage = doe[id][2].c_str();
+            createVoltageFile(pathCHzero, voltage, 1);
+            createVoltageFile(pathCHone, voltage, 0);
+            createVoltageFile(pathCHtwo, voltage, 0);
+            createVoltageFile(pathCHthree, voltage, 0);
 
-        goToNextVoltage(pathCNTRL, 1); //la tensione viene cambiata con il valore successivo
-        Sleep(20000);
+            goToNextVoltage(pathCNTRL, 1); //la tensione viene cambiata con il valore successivo
+            Sleep(20000);
+        }
+
         // tempo della singola acquisizione in ms. Ogni punto � un valore medio su questo tempo
         // fare un ciclo for. Ad ogni ciclo i files con le tensioni vanno aggiornati dopo dataAcquisition e, ultimo passo, il file pathCNTRL va rimesso a 1 e termina con lo sleep
         const char *nameDiamond = doe[id][1].c_str();
         const char *singleTime = doe[id][3].c_str();
         dataAcquisition(nameDiamond, voltage, singleTime, totalAcquisitionTime);
     }
+
+    // ************* SHUTDOWN POWERSUPPLY ********
 
     createVoltageFile(pathCHzero, voltage, 0);
     createVoltageFile(pathCHone, voltage, 0);
@@ -125,6 +140,18 @@ int main() {
     int stringaAttesa;
     cin >> stringaAttesa;
     return 0;
+}
+
+const char *getFullPath(const char *pathCHzero, char *fileOutputPath) {
+    char cCurrentPath[FILENAME_MAX];
+
+    if (!GetCurrentDir(cCurrentPath, sizeof(cCurrentPath))) {
+        return "";
+    }
+
+    strcpy(fileOutputPath, cCurrentPath);
+    strcat(fileOutputPath, pathCHzero);
+    return fileOutputPath;
 }
 
 void createVoltageFile(const char *path, const char *voltage, int channelStatus) {
