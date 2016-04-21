@@ -8,7 +8,7 @@ Wscript.Echo "dentro il vbscript"
 
 viAcquisition.FPWinOpen = True 'show the front panel
 
-Dim paramNames(6), paramVals(6) 
+Dim paramNames(10), paramVals(10)
 paramNames(0) = "timeout"
 paramNames(1) = "Numeric"
 paramNames(2) = "Save data Cluster"
@@ -16,6 +16,10 @@ paramNames(3) = "Path"
 paramNames(4) = "timeToStop" 'timer di stop
 paramNames(5) = "enableTimer" 'boolean to enable timer
 paramNames(6) = "Acquisition time (ms):"
+paramNames(7) = "OffsetSAVEButton"
+paramNames(8) = "OffsetLOADButton"
+paramNames(9) = "offsetFileName"
+paramNames(10) = "pathOffsetToRead"
 
 ' skip attesa pressione bottone start (sempre a 0 da programma)
 paramVals(0) = CInt(0)
@@ -40,6 +44,11 @@ paramVals(5) = CBool(1)
 
 ' fissa il tempo di una singola acquisizione che corrisponde al singolo valore nel file di output
 paramVals(6) = CInt (wshShell.ExpandEnvironmentStrings("%singleAcquisitionTime%"))
+
+paramVals(7) = CBool (wshShell.ExpandEnvironmentStrings("%offsetSaveButton%"))
+paramVals(8) = CBool (wshShell.ExpandEnvironmentStrings("%offsetLoadButton%"))
+paramVals(9) = CStr (sCurPath & "\offset.offs")
+paramVals(10) = CStr (sCurPath & "\offset.offs")
 
 
 ' lancio labview passandogli i parametri con i valori fissati

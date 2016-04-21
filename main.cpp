@@ -20,8 +20,6 @@ DWORD WINAPI powerSupplyThread(LPVOID lpParam);
 
 void setEnvVar(const char *envVar, const char *value);
 
-// void powerSupply(const char *voltage, const char *onOffValue, const char *channel);
-
 void dataAcquisition(const char *nameDiamond, const char *voltage, const char *singleTime,
                      const char *totalAcquisitionTime);
 
@@ -31,7 +29,7 @@ void createVoltageFile(const char *path, const char *voltage, int channelStatus)
 
 void goToNextVoltage(const char *path, int status);
 
-const char *getFullPath(const char *pathCHzero);
+const char *getFullPath(const char *pathCHzero, char *fileOutputPath);
 
 using namespace std;
 
@@ -65,12 +63,18 @@ int main() {
     HANDLE powerSupplyThreadHandle = 0;
     HANDLE arrayOfThread[1];
 
+    cout << "porto la sorgente a finecorsa" << endl;
+    motorController("1600", "80000");
+
     DataParser *parser = new DataParser("doeTable.dat");
     vector<vector<string>> doe = parser->read();
 
     // ************* Motor Parameter Control *******
     const char *speed = "1600";
-    const char *numberOfStep = "1600";
+    //const char *numberOfStep = "1600";
+    int distance = -atoi(doe[0][5].c_str()) * 1600;
+    char numberOfStep[100];
+    convertIntToString(distance, numberOfStep);
     motorController(speed, numberOfStep);
 
 
@@ -78,10 +82,11 @@ int main() {
     const char *voltage = doe[0][2].c_str();
     const char *totalAcquisitionTime = doe[0][4].c_str();
 
-    createVoltageFile(pathCHzero, voltage, 1);
-    createVoltageFile(pathCHone, voltage, 0);
-    createVoltageFile(pathCHtwo, voltage, 0);
-    createVoltageFile(pathCHthree, voltage, 0);
+    createVoltageFile(pathCHzero, voltage, 2);
+    createVoltageFile(pathCHone, voltage, 2);
+    createVoltageFile(pathCHtwo, voltage, 3);
+    createVoltageFile(pathCHthree, voltage, 2);
+    goToNextVoltage(pathCNTRL, 0);
 
     char fileOutputPath[FILENAME_MAX];
     setEnvVar("voltageValue", voltage);
@@ -100,16 +105,33 @@ int main() {
         ExitProcess(0);
     }
 
-    Sleep(20000);
+    Sleep(30000);
 
     // ************* DATA ACQUISITION LOOP ********
     for (int id = 0; id < doe.size(); id++) {
-        if (id > 0) {
+        if (id == 0) {
+            cout << "Misura dell'offset. Coprire il diamante, premere il tasto \"y\" e invio per continuare." << endl;
+            int stringaAttesa;
+            cin >> stringaAttesa;
+            setEnvVar("offsetSaveButton", "1");
+            setEnvVar("offsetLoadButton", "0");
+        } else {
+            if (doe[id][6].compare(doe[id - 1][6]) != 0) {
+                speed = "1600";
+                int initialDistance = atoi(doe[id - 1][6].c_str());
+                int finalDistance = atoi(doe[id][6].c_str());
+                int distanceToMove = (initialDistance - finalDistance) * 1600;
+                char nStep[100];
+                convertIntToString(distanceToMove, nStep);
+                motorController(speed, nStep);
+            }
+            setEnvVar("offsetSaveButton", "0");
+            setEnvVar("offsetLoadButton", "1");
             voltage = doe[id][2].c_str();
-            createVoltageFile(pathCHzero, voltage, 1);
-            createVoltageFile(pathCHone, voltage, 0);
-            createVoltageFile(pathCHtwo, voltage, 0);
-            createVoltageFile(pathCHthree, voltage, 0);
+            createVoltageFile(pathCHzero, voltage, 2);
+            createVoltageFile(pathCHone, voltage, 2);
+            createVoltageFile(pathCHtwo, voltage, 3);
+            createVoltageFile(pathCHthree, voltage, 2);
 
             goToNextVoltage(pathCNTRL, 1); //la tensione viene cambiata con il valore successivo
             Sleep(20000);
@@ -124,10 +146,10 @@ int main() {
 
     // ************* SHUTDOWN POWERSUPPLY ********
 
-    createVoltageFile(pathCHzero, voltage, 0);
-    createVoltageFile(pathCHone, voltage, 0);
-    createVoltageFile(pathCHtwo, voltage, 0);
-    createVoltageFile(pathCHthree, voltage, 0);
+    createVoltageFile(pathCHzero, voltage, 2);
+    createVoltageFile(pathCHone, voltage, 2);
+    createVoltageFile(pathCHtwo, voltage, 2);
+    createVoltageFile(pathCHthree, voltage, 2);
     goToNextVoltage(pathCNTRL, 1); //la tensione viene cambiata con il valore successivo
     Sleep(20000);
 
@@ -150,6 +172,7 @@ const char *getFullPath(const char *pathCHzero, char *fileOutputPath) {
     }
 
     strcpy(fileOutputPath, cCurrentPath);
+    strcat(fileOutputPath, "\\");
     strcat(fileOutputPath, pathCHzero);
     return fileOutputPath;
 }
@@ -161,7 +184,7 @@ void createVoltageFile(const char *path, const char *voltage, int channelStatus)
         cout << "file not found";
         return;
     }
-    file << voltage << "\t1\t50\t50\t1000\t" << channelStatus;
+    file << voltage << "\t5\t10\t10\t1000\t" << channelStatus;
     file.close();
 
 }
@@ -175,7 +198,6 @@ void goToNextVoltage(const char *path, int status) {
     }
     file << status;
     file.close();
-
 }
 
 
@@ -203,18 +225,7 @@ void dataAcquisition(const char *nameDiamond, const char *voltage, const char *s
     setEnvVar("singleAcquisitionTime", singleTime);
     setEnvVar("numberOfCycles", nCycles);
     system(DATA_ACQUISITION_PATH); // Avvio acquisizione
-
-    setEnvVar("chOnValue", "1");
-    system(POWER_SUPPLY_PATH); // Avvio PowerSupply
-
 }
-
-//void powerSupply(const char *voltage, const char *onOffValue, const char *channel) {
-//    setEnvVar("voltageValue", voltage);
-//    setEnvVar("chOnValue", onOffValue);
-//    setEnvVar("chButton", channel); // 2 corrisponde al canale 0, 3 corrisponde a CH1. 4 a CH2, 5 a CH3
-//    system(POWER_SUPPLY_PATH); // Avvio PowerSupply
-//}
 
 void motorController(const char *speed, const char *numberOfStep) {
     setEnvVar("motorSpeed", speed);

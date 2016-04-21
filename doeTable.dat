@@ -1,3 +1,4 @@
-#Id Diamond_Name    Voltage Sampling_Window_Duration(ms)    Total_Acquisition_Time(s)   Source_Diamond_Distance(mm)
-0   DMtest  20  1000    30  20
-1   DMtest  30  1000    30  20
+#Id Diamond_Name    Voltage Sampling_Window_Duration(ms)    Total_Acquisition_Time(s)   Source_Diamond_Distance(mm) Nuber_of_Step
+0   DMtest  100  10000    10  50 1600
+1   DMtest  100  1000    30  20 1600
+2   DMtest  150  1000    30  20 1600
