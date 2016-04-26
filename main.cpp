@@ -7,6 +7,7 @@
 #include <vector>
 #include "DataParser.h"
 #include <direct.h>
+#include <sstream>
 
 #define GetCurrentDir _getcwd
 
@@ -50,8 +51,18 @@ void setEnvVar(const char *envVar, const char *value) {
     cout << envVar << " = " << var << endl;
 }
 
-void convertIntToString(int value, char *dest) {
-    snprintf(dest, sizeof(dest), "%d", value);
+// void convertIntToString(int value, char *dest) {
+//    cout << "value int = " << value << endl;
+//    snprintf(dest, sizeof(dest), "%d", value);
+//    cout << "dest = " << dest << endl;
+//}
+
+void convertIntToCharStar(int value, char *dest_char) {
+    string dest;
+    stringstream convert;
+    convert << value;
+    dest = convert.str();
+    strcpy(dest_char, (char *) dest.c_str());
 }
 
 int main() {
@@ -64,20 +75,24 @@ int main() {
     HANDLE arrayOfThread[1];
 
     cout << "porto la sorgente a finecorsa" << endl;
-    motorController("1600", "80000");
+    //motorController("1600", "2000");
+
+    Sleep(10000); /// SERVE???
 
     DataParser *parser = new DataParser("doeTable.dat");
     vector<vector<string>> doe = parser->read();
 
     // ************* Motor Parameter Control *******
     const char *speed = "1600";
-    //const char *numberOfStep = "1600";
     int distance = -atoi(doe[0][5].c_str()) * 1600;
-    char numberOfStep[100];
-    convertIntToString(distance, numberOfStep);
-    motorController(speed, numberOfStep);
+    cout << "distance = " << distance << endl;
+    char numberOfStep[200];
+    convertIntToCharStar(distance, numberOfStep);
+    cout << "numberOfStep = " << numberOfStep << endl;
+    //motorController(speed, numberOfStep);
 
 
+/*
     // ************* POWER SUPPLY *********
     const char *voltage = doe[0][2].c_str();
     const char *totalAcquisitionTime = doe[0][4].c_str();
@@ -116,13 +131,13 @@ int main() {
             setEnvVar("offsetSaveButton", "1");
             setEnvVar("offsetLoadButton", "0");
         } else {
-            if (doe[id][6].compare(doe[id - 1][6]) != 0) {
+            if (doe[id][5].compare(doe[id - 1][5]) != 0) {
                 speed = "1600";
-                int initialDistance = atoi(doe[id - 1][6].c_str());
-                int finalDistance = atoi(doe[id][6].c_str());
+                int initialDistance = atoi(doe[id - 1][5].c_str());
+                int finalDistance = atoi(doe[id][5].c_str());
                 int distanceToMove = (initialDistance - finalDistance) * 1600;
-                char nStep[100];
-                convertIntToString(distanceToMove, nStep);
+                char nStep[200];
+                convertIntToCharStar(distanceToMove, nStep);
                 motorController(speed, nStep);
             }
             setEnvVar("offsetSaveButton", "0");
@@ -158,6 +173,7 @@ int main() {
     // mettere un 2 in pathCNTRL per terminare il powerSupply
     arrayOfThread[0] = powerSupplyThreadHandle;
     WaitForMultipleObjects(1, arrayOfThread, TRUE, INFINITE); // Attendo che il thread di powerSupply termini
+*/
     cout << "Digita q e premi invio per terminare." << endl;
     int stringaAttesa;
     cin >> stringaAttesa;
@@ -210,7 +226,7 @@ void dataAcquisition(const char *nameDiamond, const char *voltage, const char *s
 
 
     char nCycles[100];
-    convertIntToString(cycles, nCycles);
+    convertIntToCharStar(cycles, nCycles);
 
     char fileOutputPath[100];
     strcpy(fileOutputPath, BASE_PATH);

@@ -2,6 +2,7 @@
 // Created by Chiara La Licata on 18/04/2016.
 //
 
+#include <sstream>
 #include "DataParser.h"
 
 using namespace std;
@@ -22,22 +23,31 @@ vector<vector<string>> DataParser::read() {
     }
     string firstLine;
     getline(in, firstLine);
-    while (!in.eof()) {
-        in >> idNumber >> nameDiamond >> voltage >> samplingWindow >> totalAcquisitionTime >> sourceDistance;
-        cout << "id = " << idNumber << "  name = " << nameDiamond << "  voltage = " << voltage <<
-        "  sampling window = " << samplingWindow << "  total Acquisition = " << totalAcquisitionTime <<
-        "  distance = " << sourceDistance << endl;
 
-        vector<string> row;
-        row.push_back(idNumber);
-        row.push_back(nameDiamond);
-        row.push_back(voltage);
-        row.push_back(samplingWindow);
-        row.push_back(totalAcquisitionTime);
-        row.push_back(sourceDistance);
+    std::string line;
+    while (std::getline(in, line)) {
+        std::istringstream iss(line);
 
-        doe.push_back(row);
+        if (!(iss >> idNumber >> nameDiamond >> voltage >> samplingWindow >> totalAcquisitionTime >>
+              sourceDistance)) {
+            cout << "Impossibile leggere dal file!" << endl;
+            break;
+        } else {
+            cout << "id = " << idNumber << "  name = " << nameDiamond << "  voltage = " << voltage <<
+            "  sampling window = " << samplingWindow << "  total Acquisition = " << totalAcquisitionTime <<
+            "  distance = " << sourceDistance << endl;
+            vector<string> row;
+            row.push_back(idNumber);
+            row.push_back(nameDiamond);
+            row.push_back(voltage);
+            row.push_back(samplingWindow);
+            row.push_back(totalAcquisitionTime);
+            row.push_back(sourceDistance);
+
+            doe.push_back(row);
+        }
     }
+
     in.close();
     return doe;
 }

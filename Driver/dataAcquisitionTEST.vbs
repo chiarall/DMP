@@ -8,7 +8,7 @@ Wscript.Echo "dentro il vbscript"
 
 viAcquisition.FPWinOpen = True 'show the front panel
 
-Dim paramNames(10), paramVals(10)
+Dim paramNames(11), paramVals(11)
 paramNames(0) = "timeout"
 paramNames(1) = "Numeric"
 paramNames(2) = "Save data Cluster"
@@ -20,6 +20,7 @@ paramNames(7) = "OffsetSAVEButton"
 paramNames(8) = "OffsetLOADButton"
 paramNames(9) = "offsetFileName"
 paramNames(10) = "pathOffsetToRead"
+paramNames(11) = "start path"
 
 ' skip attesa pressione bottone start (sempre a 0 da programma)
 paramVals(0) = CInt(0)
@@ -47,8 +48,9 @@ paramVals(6) = CInt (wshShell.ExpandEnvironmentStrings("%singleAcquisitionTime%"
 
 paramVals(7) = CBool (wshShell.ExpandEnvironmentStrings("%offsetSaveButton%"))
 paramVals(8) = CBool (wshShell.ExpandEnvironmentStrings("%offsetLoadButton%"))
-paramVals(9) = CStr (sCurPath & "\offset.offs")
+paramVals(9) = CStr ("offset.offs")
 paramVals(10) = CStr (sCurPath & "\offset.offs")
+paramVals(11) = CStr (sCurPath )
 
 
 ' lancio labview passandogli i parametri con i valori fissati
