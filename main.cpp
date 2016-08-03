@@ -17,11 +17,14 @@ static const char *const ARDUINO_MOTOR_SHIELD = "cscript \"Driver\\motorControll
 
 static const char *const BASE_PATH = "C:\\Users\\Belle2\\Desktop\\DMP_test\\";
 
+static const int MAX_DISTANCE = 70;
+
 DWORD WINAPI powerSupplyThread(LPVOID lpParam);
 
 void setEnvVar(const char *envVar, const char *value);
 
-void dataAcquisition(const char *nameDiamond, const char *voltage, const char *singleTime,
+void dataAcquisition(const char *nameDiamond, const char *voltage, const char *distanceSourceDiamond,
+                     const char *singleTime,
                      const char *totalAcquisitionTime);
 
 void motorController(const char *speed, const char *numberOfStep);
@@ -31,6 +34,10 @@ void createVoltageFile(const char *path, const char *voltage, int channelStatus)
 void goToNextVoltage(const char *path, int status);
 
 const char *getFullPath(const char *pathCHzero, char *fileOutputPath);
+
+void goForward(int forwardDistance);
+
+void goBackward(int backwardDistance);
 
 using namespace std;
 
@@ -51,11 +58,6 @@ void setEnvVar(const char *envVar, const char *value) {
     cout << envVar << " = " << var << endl;
 }
 
-// void convertIntToString(int value, char *dest) {
-//    cout << "value int = " << value << endl;
-//    snprintf(dest, sizeof(dest), "%d", value);
-//    cout << "dest = " << dest << endl;
-//}
 
 void convertIntToCharStar(int value, char *dest_char) {
     string dest;
@@ -75,31 +77,29 @@ int main() {
     HANDLE arrayOfThread[1];
 
     cout << "porto la sorgente a finecorsa" << endl;
-    //motorController("1600", "2000");
-
-    Sleep(10000); /// SERVE???
+    goForward(MAX_DISTANCE);
+    Sleep(5000); /// SERVE???
 
     DataParser *parser = new DataParser("doeTable.dat");
     vector<vector<string>> doe = parser->read();
 
     // ************* Motor Parameter Control *******
     const char *speed = "1600";
-    int distance = -atoi(doe[0][5].c_str()) * 1600;
+    int distance = atoi(doe[0][5].c_str());
     cout << "distance = " << distance << endl;
-    char numberOfStep[200];
-    convertIntToCharStar(distance, numberOfStep);
-    cout << "numberOfStep = " << numberOfStep << endl;
-    //motorController(speed, numberOfStep);
+    //  char numberOfStep[200];
+    // convertIntToCharStar(distance, numberOfStep);
+    //cout << "numberOfStep = " << numberOfStep << endl;
+    goBackward(distance);
+    // motorController(speed, numberOfStep);
 
-
-/*
     // ************* POWER SUPPLY *********
     const char *voltage = doe[0][2].c_str();
     const char *totalAcquisitionTime = doe[0][4].c_str();
 
     createVoltageFile(pathCHzero, voltage, 2);
-    createVoltageFile(pathCHone, voltage, 2);
-    createVoltageFile(pathCHtwo, voltage, 3);
+    createVoltageFile(pathCHone, voltage, 3);
+    createVoltageFile(pathCHtwo, voltage, 2);
     createVoltageFile(pathCHthree, voltage, 2);
     goToNextVoltage(pathCNTRL, 0);
 
@@ -143,10 +143,14 @@ int main() {
             setEnvVar("offsetSaveButton", "0");
             setEnvVar("offsetLoadButton", "1");
             voltage = doe[id][2].c_str();
-            createVoltageFile(pathCHzero, voltage, 2);
-            createVoltageFile(pathCHone, voltage, 2);
-            createVoltageFile(pathCHtwo, voltage, 3);
-            createVoltageFile(pathCHthree, voltage, 2);
+            createVoltageFile(pathCHzero, voltage,
+                              2);  // Da automatizzare il numero finale per l'abilitazione del canale
+            createVoltageFile(pathCHone, voltage,
+                              3);   // Da automatizzare il numero finale per l'abilitazione del canale
+            createVoltageFile(pathCHtwo, voltage,
+                              2);  // Da automatizzare il numero finale per l'abilitazione del canale
+            createVoltageFile(pathCHthree, voltage,
+                              2);   // Da automatizzare il numero finale per l'abilitazione del canale
 
             goToNextVoltage(pathCNTRL, 1); //la tensione viene cambiata con il valore successivo
             Sleep(20000);
@@ -156,7 +160,8 @@ int main() {
         // fare un ciclo for. Ad ogni ciclo i files con le tensioni vanno aggiornati dopo dataAcquisition e, ultimo passo, il file pathCNTRL va rimesso a 1 e termina con lo sleep
         const char *nameDiamond = doe[id][1].c_str();
         const char *singleTime = doe[id][3].c_str();
-        dataAcquisition(nameDiamond, voltage, singleTime, totalAcquisitionTime);
+        const char *distanceSourceDiamond = doe[id][5].c_str();
+        dataAcquisition(nameDiamond, voltage, distanceSourceDiamond, singleTime, totalAcquisitionTime);
     }
 
     // ************* SHUTDOWN POWERSUPPLY ********
@@ -168,17 +173,30 @@ int main() {
     goToNextVoltage(pathCNTRL, 1); //la tensione viene cambiata con il valore successivo
     Sleep(20000);
 
-    goToNextVoltage(pathCNTRL, 2);
+    goToNextVoltage(pathCNTRL, 2); // un 2 in pathCNTRL per terminare il powerSupply
+    Sleep(20000);
 
-    // mettere un 2 in pathCNTRL per terminare il powerSupply
     arrayOfThread[0] = powerSupplyThreadHandle;
     WaitForMultipleObjects(1, arrayOfThread, TRUE, INFINITE); // Attendo che il thread di powerSupply termini
-*/
+
     cout << "Digita q e premi invio per terminare." << endl;
     int stringaAttesa;
     cin >> stringaAttesa;
     return 0;
 }
+
+void goForward(int forwardDistance) {
+    for (int mm = 0; mm < forwardDistance; mm++) {
+        motorController("1600", "1600"); // spostamento di 1 mm
+    }
+}
+
+void goBackward(int backwardDistance) {
+    for (int mm = 0; mm < backwardDistance; mm++) {
+        motorController("1600", "-1600"); // spostamento di 1 mm
+    }
+}
+
 
 const char *getFullPath(const char *pathCHzero, char *fileOutputPath) {
     char cCurrentPath[FILENAME_MAX];
@@ -217,7 +235,8 @@ void goToNextVoltage(const char *path, int status) {
 }
 
 
-void dataAcquisition(const char *nameDiamond, const char *voltage, const char *singleTime,
+void dataAcquisition(const char *nameDiamond, const char *voltage, const char *distanceSourceDiamond,
+                     const char *singleTime,
                      const char *totalAcquisitionTime) {
     int time = atoi(totalAcquisitionTime);
     time = time * 1000; // tempo in ms
@@ -234,6 +253,9 @@ void dataAcquisition(const char *nameDiamond, const char *voltage, const char *s
     strcat(fileOutputPath, "_");
     strcat(fileOutputPath, voltage);
     strcat(fileOutputPath, "V");
+    strcat(fileOutputPath, "_");
+    strcat(fileOutputPath, distanceSourceDiamond);
+    strcat(fileOutputPath, "mm");
     strcat(fileOutputPath, ".txt");
 
     cout << "fileOutputPath = " << fileOutputPath << endl;
@@ -246,7 +268,7 @@ void dataAcquisition(const char *nameDiamond, const char *voltage, const char *s
 void motorController(const char *speed, const char *numberOfStep) {
     setEnvVar("motorSpeed", speed);
     setEnvVar("numberOfStep", numberOfStep);
-    system(ARDUINO_MOTOR_SHIELD); // Avvio PowerSupply
+    system(ARDUINO_MOTOR_SHIELD); // Avvio motor shield
 }
 
 
