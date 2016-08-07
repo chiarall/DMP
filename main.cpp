@@ -17,7 +17,9 @@ static const char *const ARDUINO_MOTOR_SHIELD = "cscript \"Driver\\motorControll
 
 static const char *const BASE_PATH = "C:\\Users\\Belle2\\Desktop\\DMP_test\\";
 
-static const int MAX_DISTANCE = 70;
+static const int MAX_DISTANCE = 3;
+
+static const char *const ABORT_FILE_NAME = "motorAbortCntrl.txt";
 
 DWORD WINAPI powerSupplyThread(LPVOID lpParam);
 
@@ -124,7 +126,7 @@ int main() {
 
     // ************* DATA ACQUISITION LOOP ********
     for (int id = 0; id < doe.size(); id++) {
-        if (id == 0) {
+        if (doe[id][0] == 0) {
             cout << "Misura dell'offset. Coprire il diamante, premere il tasto \"y\" e invio per continuare." << endl;
             int stringaAttesa;
             cin >> stringaAttesa;
@@ -162,6 +164,13 @@ int main() {
         const char *singleTime = doe[id][3].c_str();
         const char *distanceSourceDiamond = doe[id][5].c_str();
         dataAcquisition(nameDiamond, voltage, distanceSourceDiamond, singleTime, totalAcquisitionTime);
+        if (doe[id][0] == 0) {
+            cout <<
+            "Misura dell'offset completata. Rimuovere lo schermo e premere il tasto \"y\" e invio per continuare." <<
+            endl;
+            int stringaAttesa;
+            cin >> stringaAttesa;
+        }
     }
 
     // ************* SHUTDOWN POWERSUPPLY ********
@@ -187,6 +196,14 @@ int main() {
 
 void goForward(int forwardDistance) {
     for (int mm = 0; mm < forwardDistance; mm++) {
+        ifstream in;
+        in.open(ABORT_FILE_NAME);
+        if (in) {
+            if (remove(ABORT_FILE_NAME) != 0) {
+                perror("Error deleting file");
+            }
+            return;
+        }
         motorController("1600", "1600"); // spostamento di 1 mm
     }
 }
