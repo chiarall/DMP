@@ -26,10 +26,15 @@ int main() {
     vector<vector<string>> doe = parser->read();
 
     cout << "Parser Test 1: " << endl;
-    assertEquals(3, doe.size());
+    assertEquals(24, doe.size());
     assertEquals("0", doe[0][0].c_str());
     assertEquals("DMtest", doe[0][1].c_str());
     assertEquals("1", doe[1][0].c_str());
+    assertEquals("2", doe[1][6].c_str());
+    assertEquals("3", doe[1][7].c_str());
+    assertEquals("2", doe[1][8].c_str());
+    assertEquals("2", doe[1][9].c_str());
+
 
     // Test 1
     char charValue[100000];

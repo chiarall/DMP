@@ -9,6 +9,7 @@
 #include <direct.h>
 #include <sstream>
 
+
 #define GetCurrentDir _getcwd
 
 static const char *const POWER_SUPPLY_PATH = "cscript \"Driver\\PowerSupplyTEST.vbs\"";
@@ -20,6 +21,8 @@ static const char *const BASE_PATH = "C:\\Users\\Belle2\\Desktop\\DMP_test\\";
 static const int MAX_DISTANCE = 3;
 
 static const char *const ABORT_FILE_NAME = "motorAbortCntrl.txt";
+
+static const int CHANNEL_OFF = 2;
 
 DWORD WINAPI powerSupplyThread(LPVOID lpParam);
 
@@ -78,31 +81,25 @@ int main() {
     HANDLE powerSupplyThreadHandle = 0;
     HANDLE arrayOfThread[1];
 
-    cout << "porto la sorgente a finecorsa" << endl;
-    goForward(MAX_DISTANCE);
-    Sleep(5000); /// SERVE???
 
     DataParser *parser = new DataParser("doeTable.dat");
     vector<vector<string>> doe = parser->read();
 
-    // ************* Motor Parameter Control *******
-    const char *speed = "1600";
-    int distance = atoi(doe[0][5].c_str());
-    cout << "distance = " << distance << endl;
-    //  char numberOfStep[200];
-    // convertIntToCharStar(distance, numberOfStep);
-    //cout << "numberOfStep = " << numberOfStep << endl;
-    goBackward(distance);
-    // motorController(speed, numberOfStep);
 
     // ************* POWER SUPPLY *********
     const char *voltage = doe[0][2].c_str();
     const char *totalAcquisitionTime = doe[0][4].c_str();
+    const char *speed = "1600";
 
-    createVoltageFile(pathCHzero, voltage, 2);
-    createVoltageFile(pathCHone, voltage, 3);
-    createVoltageFile(pathCHtwo, voltage, 2);
-    createVoltageFile(pathCHthree, voltage, 2);
+    int ch0Status = atoi(doe[0][6].c_str());
+    int ch1Status = atoi(doe[0][7].c_str());
+    int ch2Status = atoi(doe[0][8].c_str());
+    int ch3Status = atoi(doe[0][9].c_str());
+
+    createVoltageFile(pathCHzero, voltage, ch0Status);
+    createVoltageFile(pathCHone, voltage, ch1Status);
+    createVoltageFile(pathCHtwo, voltage, ch2Status);
+    createVoltageFile(pathCHthree, voltage, ch3Status);
     goToNextVoltage(pathCNTRL, 0);
 
     char fileOutputPath[FILENAME_MAX];
@@ -122,19 +119,24 @@ int main() {
         ExitProcess(0);
     }
 
-    Sleep(30000);
+    Sleep(5000);
 
     // ************* DATA ACQUISITION LOOP ********
     for (int id = 0; id < doe.size(); id++) {
-        if (doe[id][0] == 0) {
-            cout << "Misura dell'offset. Coprire il diamante, premere il tasto \"y\" e invio per continuare." << endl;
-            int stringaAttesa;
-            cin >> stringaAttesa;
+        if (doe[id][0].compare("0") == 0) {
+            cout << "porto la sorgente a finecorsa" << endl;
+            goForward(MAX_DISTANCE);
+            Sleep(5000); /// SERVE???
+
+            int distance = atoi(doe[id][5].c_str());
+            goBackward(distance);
+
+            cout << "Misura dell'offset. Coprire il diamante." << endl;
+            system("PAUSE");
             setEnvVar("offsetSaveButton", "1");
             setEnvVar("offsetLoadButton", "0");
         } else {
             if (doe[id][5].compare(doe[id - 1][5]) != 0) {
-                speed = "1600";
                 int initialDistance = atoi(doe[id - 1][5].c_str());
                 int finalDistance = atoi(doe[id][5].c_str());
                 int distanceToMove = (initialDistance - finalDistance) * 1600;
@@ -145,14 +147,16 @@ int main() {
             setEnvVar("offsetSaveButton", "0");
             setEnvVar("offsetLoadButton", "1");
             voltage = doe[id][2].c_str();
-            createVoltageFile(pathCHzero, voltage,
-                              2);  // Da automatizzare il numero finale per l'abilitazione del canale
-            createVoltageFile(pathCHone, voltage,
-                              3);   // Da automatizzare il numero finale per l'abilitazione del canale
-            createVoltageFile(pathCHtwo, voltage,
-                              2);  // Da automatizzare il numero finale per l'abilitazione del canale
-            createVoltageFile(pathCHthree, voltage,
-                              2);   // Da automatizzare il numero finale per l'abilitazione del canale
+
+            ch0Status = atoi(doe[id][6].c_str());
+            ch1Status = atoi(doe[id][7].c_str());
+            ch2Status = atoi(doe[id][8].c_str());
+            ch3Status = atoi(doe[id][9].c_str());
+
+            createVoltageFile(pathCHzero, voltage, ch0Status);
+            createVoltageFile(pathCHone, voltage, ch1Status);
+            createVoltageFile(pathCHtwo, voltage, ch2Status);
+            createVoltageFile(pathCHthree, voltage, ch3Status);
 
             goToNextVoltage(pathCNTRL, 1); //la tensione viene cambiata con il valore successivo
             Sleep(20000);
@@ -164,21 +168,20 @@ int main() {
         const char *singleTime = doe[id][3].c_str();
         const char *distanceSourceDiamond = doe[id][5].c_str();
         dataAcquisition(nameDiamond, voltage, distanceSourceDiamond, singleTime, totalAcquisitionTime);
-        if (doe[id][0] == 0) {
+        if (doe[id][0].compare("0") == 0) {
             cout <<
-            "Misura dell'offset completata. Rimuovere lo schermo e premere il tasto \"y\" e invio per continuare." <<
+            "Misura dell'offset completata. Rimuovere lo schermo." <<
             endl;
-            int stringaAttesa;
-            cin >> stringaAttesa;
+            system("PAUSE");
         }
     }
 
     // ************* SHUTDOWN POWERSUPPLY ********
 
-    createVoltageFile(pathCHzero, voltage, 2);
-    createVoltageFile(pathCHone, voltage, 2);
-    createVoltageFile(pathCHtwo, voltage, 2);
-    createVoltageFile(pathCHthree, voltage, 2);
+    createVoltageFile(pathCHzero, voltage, CHANNEL_OFF);
+    createVoltageFile(pathCHone, voltage, CHANNEL_OFF);
+    createVoltageFile(pathCHtwo, voltage, CHANNEL_OFF);
+    createVoltageFile(pathCHthree, voltage, CHANNEL_OFF);
     goToNextVoltage(pathCNTRL, 1); //la tensione viene cambiata con il valore successivo
     Sleep(20000);
 
@@ -189,8 +192,7 @@ int main() {
     WaitForMultipleObjects(1, arrayOfThread, TRUE, INFINITE); // Attendo che il thread di powerSupply termini
 
     cout << "Digita q e premi invio per terminare." << endl;
-    int stringaAttesa;
-    cin >> stringaAttesa;
+    system("PAUSE");
     return 0;
 }
 

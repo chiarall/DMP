@@ -1,25 +1,25 @@
-#Id Diamond_Name    Voltage Sampling_Window_Duration(ms)    Total_Acquisition_Time(s)   Source_Diamond_Distance(mm)
-0   DMtest  100 10000    60  50
-1   DMtest  100 1000    60  50
-2   DMtest  100 1000    60  45
-3   DMtest  100 1000    60  40
-4   DMtest  100 1000    60  35
-5   DMtest  100 1000    60  30
-6   DMtest  100 1000    60  28
-7   DMtest  100 1000    60  26
-8   DMtest  100 1000    60  24
-9   DMtest  100 1000    60  22
-10  DMtest  100 1000    60  20
-11  DMtest  100 1000    60  18
-12  DMtest  100 1000    60  16
-13  DMtest  100 1000    60  14
-14  DMtest  100 1000    60  12
-15  DMtest  100 1000    60  10
-16  DMtest  100 1000    60  9
-17  DMtest  100 1000    60  8
-18  DMtest  100 1000    60  7
-19  DMtest  100 1000    60  6
-20  DMtest  100 1000    60  5
-21  DMtest  100 1000    60  4
-22  DMtest  100 1000    60  3
-23  DMtest  100 1000    60  2
+#Id Diamond_Name    Voltage Sampling_Window_Duration(ms)    Total_Acquisition_Time(s)   Source_Diamond_Distance(mm)   Channel0_Status   Channel1_Status   Channel2_Status   Channel3_Status
+0   DMtest  100 10000    60  50   OFF   ON   OFF   OFF
+1   DMtest  100 1000    60  50   OFF   ON   OFF   OFF
+2   DMtest  100 1000    60  45   OFF   ON   OFF   OFF
+3   DMtest  100 1000    60  40   OFF   ON   OFF   OFF
+4   DMtest  100 1000    60  35   OFF   ON   OFF   OFF
+5   DMtest  100 1000    60  30   OFF   ON   OFF   OFF
+6   DMtest  100 1000    60  28   OFF   ON   OFF   OFF
+7   DMtest  100 1000    60  26   OFF   ON   OFF   OFF
+8   DMtest  100 1000    60  24   OFF   ON   OFF   OFF
+9   DMtest  100 1000    60  22   OFF   ON   OFF   OFF
+10  DMtest  100 1000    60  20   OFF   ON   OFF   OFF
+11  DMtest  100 1000    60  18   OFF   ON   OFF   OFF
+12  DMtest  100 1000    60  16   OFF   ON   OFF   OFF
+13  DMtest  100 1000    60  14   OFF   ON   OFF   OFF
+14  DMtest  100 1000    60  12   OFF   ON   OFF   OFF
+15  DMtest  100 1000    60  10   OFF   ON   OFF   OFF
+16  DMtest  100 1000    60  9   OFF   ON   OFF   OFF
+17  DMtest  100 1000    60  8   OFF   ON   OFF   OFF
+18  DMtest  100 1000    60  7   OFF   ON   OFF   OFF
+19  DMtest  100 1000    60  6   OFF   ON   OFF   OFF
+20  DMtest  100 1000    60  5   OFF   ON   OFF   OFF
+21  DMtest  100 1000    60  4   OFF   ON   OFF   OFF
+22  DMtest  100 1000    60  3   OFF   ON   OFF   OFF
+23  DMtest  100 1000    60  2   OFF   ON   OFF   OFF
